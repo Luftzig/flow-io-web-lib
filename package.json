@@ -1,0 +1,6 @@
+{
+  "name": "flow-io-web-lib",
+  "version": "1.0.0",
+  "main": "src/flow-io.js",
+  "license": "Propietary"
+}
