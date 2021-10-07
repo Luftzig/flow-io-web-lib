@@ -1,6 +1,13 @@
 {
   "name": "flow-io-web-lib",
   "version": "1.0.0",
-  "main": "src/flow-io.js",
-  "license": "Propietary"
+  "main": "src/flow-io.ts",
+  "license": "Propietary",
+  "devDependencies": {
+    "@types/web-bluetooth": "^0.0.11",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "global": "^4.4.0"
+  }
 }
