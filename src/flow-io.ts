@@ -7,17 +7,17 @@ export const DEFAULT_SERVICES = ["generic_access"];
 export const DEVICE_NAME_PREFIX = "FlowIO"; //Allow devices STARTING with this name
 
 export class FlowIo {
-    services: { [key: string]: FlowIoService }
     connection = new Subscription<Event>(["connected", "disconnected", "reconnectfailed"])
-    _bleDevice: BluetoothDevice | undefined
-    _bleServer: BluetoothRemoteGATTServer | undefined
-    _reconnectAttempts = 0
 
+    readonly #services: { [key: string]: FlowIoService } = {}
+    #_bleDevice: BluetoothDevice | undefined
+    #_bleServer: BluetoothRemoteGATTServer | undefined
+    #_reconnectAttempts = 0
     #configuration: { maxReconnectAttempts: number }
 
     constructor(services: FlowIoService[], maxReconnectAttempts: number = 3) {
         this.#configuration = {maxReconnectAttempts}
-        this.services = Object.fromEntries(services.map(service => [service.name, service]))
+        this.#services = Object.fromEntries(services.map(service => [service.name, service]))
     }
 
     /**
@@ -35,16 +35,16 @@ export class FlowIo {
         };
         //the 'DEFAULT_SERVICES' is defined in the conditions.js file.
         try {
-            this._bleDevice = await navigator.bluetooth.requestDevice(deviceOptions);
-            this._bleDevice.addEventListener("gattserverdisconnected", event => {
+            this.#_bleDevice = await navigator.bluetooth.requestDevice(deviceOptions);
+            this.#_bleDevice.addEventListener("gattserverdisconnected", event => {
                 this.connection.publish("disconnected", event)
             }); //create and event listener for disconnect events.
-            this._bleServer = await this._bleDevice.gatt?.connect();
+            this.#_bleServer = await this.#_bleDevice.gatt?.connect();
 
             try {
                 await this._initialiseServices();
                 this.connection.publish("connected", new Event("flow-io-connected"))
-                this._reconnectAttempts = 0;
+                this.#_reconnectAttempts = 0;
             } catch (error) {
                 this.connection.publish("disconnected", new Event("flow-io-services-uninitialised"))
                 console.log(error)
@@ -58,15 +58,15 @@ export class FlowIo {
     }
 
     async reconnect() {
-        if (this._bleDevice != null && !this._bleServer?.connected) {
+        if (this.#_bleDevice != null && !this.#_bleServer?.connected) {
             try {
-                this._bleServer = await this._bleDevice.gatt?.connect();
+                this.#_bleServer = await this.#_bleDevice.gatt?.connect();
                 await this._initialiseServices();
                 this.connection.publish("connected", new Event("flow-io-connected"))
-                this._reconnectAttempts = 0;
+                this.#_reconnectAttempts = 0;
             } catch (error) {
-                this._reconnectAttempts++;
-                if (this._reconnectAttempts <= this.#configuration.maxReconnectAttempts) {
+                this.#_reconnectAttempts++;
+                if (this.#_reconnectAttempts <= this.#configuration.maxReconnectAttempts) {
                     this.connection.publish("reconnectfailed", new Event("flow-io-services-uninitialised"))
                     await this.reconnect();
                 } else {
@@ -79,8 +79,8 @@ export class FlowIo {
     }
 
     disconnect() {
-        if (this._bleDevice != null && this._bleServer?.connected) {
-            this._bleServer?.disconnect()
+        if (this.#_bleDevice != null && this.#_bleServer?.connected) {
+            this.#_bleServer?.disconnect()
             this.connection.publish("disconnected", new Event("flow-io-disconnect-requested"))
         }
     }
@@ -93,13 +93,25 @@ export class FlowIo {
     }
 
     async _initialiseServices() {
-        if (this._bleServer != null) {
+        if (this.#_bleServer != null) {
             return Promise.all(
                 Object.values(this.services)
-                      .map((service: FlowIoService) => service.init(this._bleServer!)),
+                      .map((service: FlowIoService) => service.init(this.#_bleServer!)),
             )
         } else {
             return Promise.reject("This FlowIO object is not connected to a device")
         }
+    }
+
+    get id(): string {
+        return this.#_bleDevice?.id ?? "Unknown"
+    }
+
+    get name(): string {
+        return this.#_bleDevice?.name ?? "Unknown"
+    }
+
+    get services() {
+        return this.#services
     }
 }

@@ -188,6 +188,7 @@ export default class ControlService implements FlowIoService {
                                                                                         "command-sent",
                                                                                         "command-failed",
                                                                                     ])
+    #pumpPWMStatus: { pump1: number, pump2: number } = {pump1: NaN, pump2: NaN}
 
     status: HardwareStatus = new HardwareStatus()
 
@@ -255,7 +256,7 @@ export default class ControlService implements FlowIoService {
         //if the third byte is 255, then we are going to send only the first 2bytes to the FlowIO to save time and bandwidth.
         if (pumpPwm === PUMP_MAX_PWM) { //in this case only send an array of 2-bytes.
             const array2byte = new Uint8Array([actionCode, portsCode]);
-            await this.#command?.writeValue(array2byte)
+            await this.#command?.writeValueWithoutResponse(array2byte)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
@@ -263,7 +264,7 @@ export default class ControlService implements FlowIoService {
                       })
 
         } else {
-            await this.#command?.writeValue(commandArray)
+            await this.#command?.writeValueWithoutResponse(commandArray)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
@@ -278,23 +279,24 @@ export default class ControlService implements FlowIoService {
     //   await flowio.writeCommand(INFLATION, where, how);
     // }
     //
-    // async startVacuum(where, how = flowio.pump2PWM) {
-    //   await flowio.writeCommand(VACUUM, where, how);
-    // }
-    //
-    // async startRelease(where) {
-    //   await flowio.writeCommand(RELEASE, where);
-    // }
-    //
-    // async stopAction(where) {
-    //   await flowio.writeCommand(STOP, where);
-    // }
+    async startVacuum(ports: FlowIOPortsState, pumpPwm = this.#pumpPWMStatus.pump1) {
+        await this.sendCommand({action: VACUUM, ports: ports, pumpPwm });
+    }
+
+    async startRelease(ports: FlowIOPortsState) {
+        await this.sendCommand({action: RELEASE, ports, pumpPwm: 0 });
+    }
+
+    async stopAction(ports: FlowIOPortsState) {
+        await this.sendCommand({action: STOP, ports, pumpPwm: 0});
+    }
 
     async stopAllActions() {
         await this.sendCommand({action: STOP, ports: ALLPORTS, pumpPwm: 0});
     }
 
     async setPump1PWM(pwmValue: number) {       //we will invoke this function every time the pump1 slider changes.
+        this.#pumpPWMStatus.pump1 = pwmValue;
         if (this.status.pump1) {
             await this._setPumpPwmValue(pwmValue)
         }
@@ -302,6 +304,7 @@ export default class ControlService implements FlowIoService {
 
     async setPump2PWM(pwmValue: number) {       //we will invoke this function every time the pump1 slider changes.
                                                 //send the same command as the previous one, but only change the pwmValue. Only send command if pump1 is ON.
+        this.#pumpPWMStatus.pump2 = pwmValue;
         if (this.status.pump2) {
             await this._setPumpPwmValue(pwmValue)
         }
@@ -318,9 +321,9 @@ export default class ControlService implements FlowIoService {
             }
         } catch (error) {
             //Display error only if different from this one. Is there a more elegant way
-            //to check id device is bysy and then simplu not send the write request, rather
+            //to check id device is busy and then simply not send the write request, rather
             //than waiting for an error to tell me this?
-            if (error.message !== "GATT operation already in progress.") {
+            if ((error as Error).message !== "GATT operation already in progress.") {
                 console.log(error);
                 throw error;
             }
