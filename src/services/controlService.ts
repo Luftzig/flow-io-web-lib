@@ -162,7 +162,13 @@ function toCommandCode(action: FlowIOAction): FlowIOActionCode {
 }
 
 function toPortsCode(ports: FlowIOPortsState) {
-    if (typeof ports === "object") {
+    if (Array.isArray(ports)) {
+        return (ports[0] ? 0x01 : 0)
+               + (ports[1] ? 0x02 : 0)
+               + (ports[2] ? 0x04 : 0)
+               + (ports[4] ? 0x08 : 0)
+               + (ports[5] ? 0x10 : 0)
+    } else if (typeof ports === "object") {
         return (ports.port1 ? 0x01 : 0)
                + (ports.port2 ? 0x02 : 0)
                + (ports.port3 ? 0x04 : 0)
@@ -285,11 +291,11 @@ export default class ControlService implements FlowIoService {
     // }
     //
     async startVacuum(ports: FlowIOPortsState, pumpPwm = this.#pumpPWMStatus.pump1) {
-        await this.sendCommand({action: VACUUM, ports: ports, pumpPwm });
+        await this.sendCommand({action: VACUUM, ports: ports, pumpPwm});
     }
 
     async startRelease(ports: FlowIOPortsState) {
-        await this.sendCommand({action: RELEASE, ports, pumpPwm: 0 });
+        await this.sendCommand({action: RELEASE, ports, pumpPwm: 0});
     }
 
     async stopAction(ports: FlowIOPortsState) {
@@ -308,7 +314,7 @@ export default class ControlService implements FlowIoService {
     }
 
     async setPump2PWM(pwmValue: number) {       //we will invoke this function every time the pump1 slider changes.
-                                                //send the same command as the previous one, but only change the pwmValue. Only send command if pump1 is ON.
+        //send the same command as the previous one, but only change the pwmValue. Only send command if pump1 is ON.
         this.#pumpPWMStatus.pump2 = pwmValue;
         if (this.status.pump2) {
             await this._setPumpPwmValue(pwmValue)
