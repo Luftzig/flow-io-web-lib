@@ -6,18 +6,18 @@ export const DEFAULT_SERVICES = ["generic_access"];
 
 export const DEVICE_NAME_PREFIX = "FlowIO"; //Allow devices STARTING with this name
 
-export class FlowIo {
+export class FlowIo<Services extends {[s: string]: FlowIoService}> {
     connection = new Subscription<Event>(["connected", "disconnected", "reconnectfailed"])
 
-    readonly #services: { [key: string]: FlowIoService } = {}
+    readonly #services: Services
     #_bleDevice: BluetoothDevice | undefined
     #_bleServer: BluetoothRemoteGATTServer | undefined
     #_reconnectAttempts = 0
     #configuration: { maxReconnectAttempts: number }
 
-    constructor(services: FlowIoService[], maxReconnectAttempts: number = 3) {
+    constructor(services: Services, maxReconnectAttempts: number = 3) {
         this.#configuration = {maxReconnectAttempts}
-        this.#services = Object.fromEntries(services.map(service => [service.name, service]))
+        this.#services = services
     }
 
     /**

@@ -176,9 +176,10 @@ function toPortsCode(ports: FlowIOPortsState) {
 }
 
 export default class ControlService implements FlowIoService {
-    name = "control-service"
-    static uuid = controlServiceUUID
-    uuid = ControlService.uuid
+    static readonly id = "control-service"
+    static readonly uuid = controlServiceUUID
+    readonly id = ControlService.id
+    readonly uuid = ControlService.uuid
     #service: BluetoothRemoteGATTService | undefined
     #command: BluetoothRemoteGATTCharacteristic | undefined
     #hardwareState: BluetoothRemoteGATTCharacteristic | undefined
@@ -212,6 +213,10 @@ export default class ControlService implements FlowIoService {
     onStatusUpdated(listener: (status: HardwareStatus) => void) {
         // @ts-ignore
         this.#subscription.subscribe("status", listener)
+        // Publish the current state
+        if (this.#hardwareState != null && this.status != null) {
+            this.#subscription.publish("status", this.status)
+        }
     }
 
     removeStatusListener(listener: (status: HardwareStatus) => void) {
