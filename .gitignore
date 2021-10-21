@@ -117,4 +117,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Build artefacts
 lib/
+index.js
+index.d.ts
+index.d.ts.map

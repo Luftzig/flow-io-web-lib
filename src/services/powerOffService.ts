@@ -72,6 +72,14 @@ export class PowerOffService implements FlowIoService {
         }
     }
 
+    onStatusChanged(listener: (status: PowerOffStatus) => void) {
+        this.#subscriptions.subscribe('powerstatus', listener)
+    }
+
+    removeStatusListener(listener: (status: PowerOffStatus) => void) {
+        this.#subscriptions.unsubscribe('powerstatus', listener)
+    }
+
     public static readonly uuid = powerOffServiceUUID
     public readonly uuid: string = PowerOffService.uuid
 }
