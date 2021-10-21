@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "main": "src/flow-io.ts",
   "license": "Propietary",
+  "author": "Yoav Luft <contact@luftyoav.com>",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -r lib"
+  },
   "devDependencies": {
     "@types/web-bluetooth": "^0.0.11",
     "typescript": "^4.4.3"
   },
   "dependencies": {
     "global": "^4.4.0"
-  }
+  },
+  "files": ["lib/**/*"]
 }

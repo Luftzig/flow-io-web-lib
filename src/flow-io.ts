@@ -6,6 +6,11 @@ export const DEFAULT_SERVICES = ["generic_access"];
 
 export const DEVICE_NAME_PREFIX = "FlowIO"; //Allow devices STARTING with this name
 
+/**
+ * @class FlowIo Represents a connection to a FlowIO device
+ *
+ * @constructor
+ */
 export class FlowIo<Services extends {[s: string]: FlowIoService}> {
     connection = new Subscription<Event>(["connected", "disconnected", "reconnectfailed"])
 
