@@ -3,7 +3,7 @@ import FlowIoService from "./service"
 const configServiceUUID = "0b0b0b0b-0b0b-0b0b-0b0b-00000000aa03";
 const chrConfigUUID = "0b0b0b0b-0b0b-0b0b-0b0b-c1000000aa03";
 
-type FlowIOConfiguration
+export type FlowIOConfiguration
     = 'GENERAL'
     | 'INFLATION_SERIES'
     | 'INFLATION_PARALLEL'
@@ -43,7 +43,7 @@ function codeToConfiguration(code: number): FlowIOConfiguration | undefined {
     }
 }
 
-class ConfigService implements FlowIoService {
+export class ConfigService implements FlowIoService {
     public static readonly id = "config-service"
     public readonly id: string = ConfigService.id
 

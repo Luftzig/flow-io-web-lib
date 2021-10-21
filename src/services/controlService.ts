@@ -60,7 +60,7 @@ const chrHardwareStatusUUID = "0b0b0b0b-0b0b-0b0b-0b0b-c2000000aa04";
 
 type FlowIOAction = FlowIOActionString | FlowIOActionCode
 
-type FlowIOActionString = "inflate" | "vacuum" | "release" | "stop"
+export type FlowIOActionString = "inflate" | "vacuum" | "release" | "stop"
     | "inflate-half" | "vacuum-half" // TODO: Are these two supported?
 
 type FlowIOActionCode
@@ -71,7 +71,7 @@ type FlowIOActionCode
     | /* INFLATION_HALF */0x70
     | /* VACUUM_HALF */0x6e;
 
-type FlowIOPortsState
+export type FlowIOPortsState
     =
     { port1: boolean, port2: boolean, port3: boolean, port4: boolean, port5: boolean, inlet?: boolean, outlet?: boolean }
     | number
