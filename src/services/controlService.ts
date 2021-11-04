@@ -166,8 +166,8 @@ function toPortsCode(ports: FlowIOPortsState) {
         return (ports[0] ? 0x01 : 0)
                + (ports[1] ? 0x02 : 0)
                + (ports[2] ? 0x04 : 0)
-               + (ports[4] ? 0x08 : 0)
-               + (ports[5] ? 0x10 : 0)
+               + (ports[3] ? 0x08 : 0)
+               + (ports[4] ? 0x10 : 0)
     } else if (typeof ports === "object") {
         return (ports.port1 ? 0x01 : 0)
                + (ports.port2 ? 0x02 : 0)
