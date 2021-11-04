@@ -11,7 +11,7 @@ export const DEVICE_NAME_PREFIX = "FlowIO"; //Allow devices STARTING with this n
  *
  * @constructor
  */
-export class FlowIo<Services extends {[s: string]: FlowIoService}> {
+export class FlowIo<Services extends { [s: string]: FlowIoService }> {
     connection = new Subscription<Event>(["connected", "disconnected", "reconnectfailed"])
 
     readonly #services: Services
@@ -30,13 +30,13 @@ export class FlowIo<Services extends {[s: string]: FlowIoService}> {
      * @param options Request a specific device or a device with specific services
      * @return {Promise<void>} resolves when connected to device and all services are initialised.
      */
-    async connect(options: { namePrefix: string, requestedServices: string[] } = {
+    async connect(options: { namePrefix?: string, requestedServices?: string[] } = {
         namePrefix: DEVICE_NAME_PREFIX,
-        requestedServices: DEFAULT_SERVICES,
+        requestedServices: undefined,
     }) {
         const deviceOptions: RequestDeviceOptions = {
             filters: [{namePrefix: options.namePrefix ? options.namePrefix : DEVICE_NAME_PREFIX}],
-            optionalServices: options.requestedServices,
+            optionalServices: options.requestedServices ?? Object.values(this.#services).map(service => service.uuid),
         };
         //the 'DEFAULT_SERVICES' is defined in the conditions.js file.
         try {
