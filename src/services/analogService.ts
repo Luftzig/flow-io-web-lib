@@ -37,7 +37,12 @@ const STOP_CODE = 0x00
 const SINGLE_VALUE_CODE = 0x01
 const CONTINUOUS_VALUE_CODE = 0x02
 
-class AnalogService implements FlowIoService {
+export type AnalogValues = [
+    number, number, number, number, number, number, number, number,
+    number, number, number, number, number, number, number, number,
+]
+
+export class AnalogService implements FlowIoService {
     static readonly id = "analog-service"
     public readonly id: string = AnalogService.id
     static readonly uuid = analogServiceUUID
@@ -45,7 +50,7 @@ class AnalogService implements FlowIoService {
     // These are initialised in `init` so we tell the compiler that
     #service!: BluetoothRemoteGATTService
     #values!: BluetoothRemoteGATTCharacteristic
-    #subscriptions: Subscription<Array<number>> = new Subscription<Array<number>>(["data"])
+    #subscriptions: Subscription<AnalogValues> = new Subscription<AnalogValues>(["data"])
     #averagingWindowSampleSize: number = 1
 
     public async init(bleServer: BluetoothRemoteGATTServer): Promise<void> {
@@ -54,9 +59,9 @@ class AnalogService implements FlowIoService {
 
         this.#values.addEventListener("characteristicvaluechanged", ({target}) => {
             const values = (target as BluetoothRemoteGATTCharacteristic)?.value
-            if (values != null && values.byteLength === (16*2)) {
+            if (values != null && values.byteLength === (16 * 2)) {
                 const asNumbers = [...Array(16).keys()].map(index => values.getUint16(index * 2, true))
-                this.#subscriptions.publish("data", asNumbers)
+                this.#subscriptions.publish("data", asNumbers as AnalogValues)
             } else {
                 console.warn("Attempted to read analog values, but found", values)
             }
@@ -65,7 +70,7 @@ class AnalogService implements FlowIoService {
         return Promise.resolve(undefined);
     }
 
-    public async requestValues(mode: "stop" | "single" | "continuous", averagingWindowSizeSamples?: number ) {
+    public async requestValues(mode: "stop" | "single" | "continuous", averagingWindowSizeSamples?: number) {
         switch (mode) {
             case "stop":
                 return this.#values.writeValue(new Uint8Array([STOP_CODE]))
@@ -77,5 +82,15 @@ class AnalogService implements FlowIoService {
         }
     }
 
-    get averagingWindowSampleSize() { return this.#averagingWindowSampleSize}
+    public onValuesChange(listener: (values: AnalogValues) => void) {
+        this.#subscriptions.subscribe("data", listener)
+    }
+
+    public removeValuesListener(listener: (values: AnalogValues) => void) {
+        this.#subscriptions.unsubscribe("data", listener)
+    }
+
+    public get averagingWindowSampleSize() {
+        return this.#averagingWindowSampleSize
+    }
 }
