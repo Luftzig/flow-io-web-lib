@@ -6,6 +6,7 @@
   "author": "Yoav Luft <contact@luftyoav.com>",
   "scripts": {
     "build": "tsc",
+    "install": "tsc",
     "clean": "rm -r lib"
   },
   "devDependencies": {
