@@ -6,7 +6,7 @@
   "author": "Yoav Luft <contact@luftyoav.com>",
   "scripts": {
     "build": "tsc",
-    "install": "yarn install && tsc",
+    "postinstall": "yarn install --dev typescript @types/web-bluetooth && tsc",
     "clean": "rm -r lib"
   },
   "devDependencies": {
