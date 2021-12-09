@@ -63,7 +63,7 @@ type FlowIOAction = FlowIOActionString | FlowIOActionCode
 export type FlowIOActionString = "inflate" | "vacuum" | "release" | "stop"
     | "inflate-half" | "vacuum-half" // TODO: Are these two supported?
 
-type FlowIOActionCode
+export type FlowIOActionCode
     = /* STOP */0x21
     | /* INFLATION */0x2b
     | /* VACUUM */0x2d
@@ -138,7 +138,7 @@ export class HardwareStatus {
 }
 
 
-function toCommandCode(action: FlowIOAction): FlowIOActionCode {
+export function toCommandCode(action: FlowIOAction): FlowIOActionCode {
     if (typeof action === "number") {
         // We assume that the typechecker will warn us if we use the wrong code
         return (action as FlowIOActionCode)
@@ -161,7 +161,26 @@ function toCommandCode(action: FlowIOAction): FlowIOActionCode {
     }
 }
 
-function toPortsCode(ports: FlowIOPortsState) {
+export function fromCommandCode(code: FlowIOActionCode | number): FlowIOActionString | undefined {
+    switch (code) {
+        case 0x21:
+            return 'stop'
+        case 0x2b:
+            return 'inflate'
+        case 0x2d:
+            return 'vacuum'
+        case 0x5e:
+            return 'release'
+        case 0x70:
+            return 'inflate-half'
+        case 0x6e:
+            return 'vacuum-half'
+        default:
+            return undefined
+    }
+}
+
+export function toPortsCode(ports: FlowIOPortsState): number {
     if (Array.isArray(ports)) {
         return (ports[0] ? 0x01 : 0)
                + (ports[1] ? 0x02 : 0)
