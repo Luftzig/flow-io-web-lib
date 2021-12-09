@@ -1,4 +1,3 @@
-import { FlowIoInstruction } from "./flow-io-instruction"
 import FlowIoService from "./services/service"
 import { Subscription } from "./subscription"
 
@@ -91,10 +90,7 @@ export class FlowIo<Services extends { [s: string]: FlowIoService }> {
     }
 
     isConnected() {
-    }
-
-    run(instructions: FlowIoInstruction[]) {
-        // TODO
+        return (this.#_bleDevice != null && this.#_bleServer?.connected)
     }
 
     async _initialiseServices() {

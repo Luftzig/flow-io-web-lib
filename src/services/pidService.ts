@@ -112,7 +112,7 @@ class PidControl {
     static readonly memorySize = 14;
 }
 
-class PidService implements FlowIoService {
+export class PidService implements FlowIoService {
     static readonly id = "pid-service"
     public readonly id: string = PidService.id
     static readonly uuid = pidControlUUID
