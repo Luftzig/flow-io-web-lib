@@ -65,20 +65,20 @@ class PidSettings {
 class PidControl {
     proportional: number
     integrative: number
-    deferential: number
-    input: number
-    output: FlowIOPortsState
+    differential: number
+    inputChannel: number
+    outputPort: FlowIOPortsState
 
     constructor(inputChannel: number,
                 outputPort: FlowIOPortsState,
                 proportional = 0,
                 integrative = 0,
-                deferential = 0) {
-        this.input = inputChannel > 0 && inputChannel <= 16 ? inputChannel : 0
-        this.output = outputPort
+                differential = 0) {
+        this.inputChannel = inputChannel > 0 && inputChannel <= 16 ? inputChannel : 0
+        this.outputPort = outputPort
         this.proportional = proportional
         this.integrative = integrative
-        this.deferential = deferential
+        this.differential = differential
     }
 
     static disabled(): PidControl {
@@ -90,9 +90,9 @@ class PidControl {
         const view = new DataView(buffer)
         view.setFloat32(0, this.proportional)
         view.setFloat32(4, this.integrative)
-        view.setFloat32(8, this.deferential)
-        view.setUint8(12, this.input)
-        view.setUint8(13, toPortsCode(this.output))
+        view.setFloat32(8, this.differential)
+        view.setUint8(12, this.inputChannel)
+        view.setUint8(13, toPortsCode(this.outputPort))
         return buffer
     }
 
@@ -101,9 +101,9 @@ class PidControl {
         const control = new PidControl(0, 0)
         control.proportional = view.getFloat32(0)
         control.integrative = view.getFloat32(4)
-        control.deferential = view.getFloat32(8)
-        control.input = view.getUint8(12)
-        control.output = view.getUint8(13)
+        control.differential = view.getFloat32(8)
+        control.inputChannel = view.getUint8(12)
+        control.outputPort = view.getUint8(13)
         return control
     }
 
