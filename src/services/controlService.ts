@@ -151,7 +151,7 @@ export function toCommandCode(action: FlowIOAction): FlowIOActionCode {
         case "release":
             return RELEASE
         case "stop":
-            return RELEASE
+            return STOP
         case "inflate-half":
             return INFLATION_HALF
         case "vacuum-half":
@@ -281,12 +281,15 @@ export default class ControlService implements FlowIoService {
         this.lastCommand = command
         const actionCode = toCommandCode(action)
         const portsCode = toPortsCode(ports)
-        const commandArray = new Uint8Array([actionCode, portsCode, pumpPwm]); //Always holds the last command written.
+        const buffer = new ArrayBuffer(3)
+        const dataView = new DataView(buffer)
+        dataView.setUint8(0, actionCode)
+        dataView.setUint8(1, portsCode)
+        dataView.setUint8(2, pumpPwm)
         //All action methods are in terms of the writeCommand() method so this is updated automatically.
         //if the third byte is 255, then we are going to send only the first 2bytes to the FlowIO to save time and bandwidth.
         if (pumpPwm === PUMP_MAX_PWM) { //in this case only send an array of 2-bytes.
-            const array2byte = new Uint8Array([actionCode, portsCode]);
-            await this.#command?.writeValueWithoutResponse(array2byte)
+            await this.#command?.writeValueWithoutResponse(buffer.slice(0, 1))
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
@@ -294,7 +297,7 @@ export default class ControlService implements FlowIoService {
                       })
 
         } else {
-            await this.#command?.writeValueWithoutResponse(commandArray)
+            await this.#command?.writeValueWithoutResponse(dataView.buffer)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
