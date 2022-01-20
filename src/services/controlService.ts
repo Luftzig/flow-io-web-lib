@@ -63,7 +63,7 @@ type FlowIOAction = FlowIOActionString | FlowIOActionCode
 export type FlowIOActionString = "inflate" | "vacuum" | "release" | "stop"
     | "inflate-half" | "vacuum-half" // TODO: Are these two supported?
 
-type FlowIOActionCode
+export type FlowIOActionCode
     = /* STOP */0x21
     | /* INFLATION */0x2b
     | /* VACUUM */0x2d
@@ -138,7 +138,7 @@ export class HardwareStatus {
 }
 
 
-function toCommandCode(action: FlowIOAction): FlowIOActionCode {
+export function toCommandCode(action: FlowIOAction): FlowIOActionCode {
     if (typeof action === "number") {
         // We assume that the typechecker will warn us if we use the wrong code
         return (action as FlowIOActionCode)
@@ -151,7 +151,7 @@ function toCommandCode(action: FlowIOAction): FlowIOActionCode {
         case "release":
             return RELEASE
         case "stop":
-            return RELEASE
+            return STOP
         case "inflate-half":
             return INFLATION_HALF
         case "vacuum-half":
@@ -161,7 +161,26 @@ function toCommandCode(action: FlowIOAction): FlowIOActionCode {
     }
 }
 
-function toPortsCode(ports: FlowIOPortsState) {
+export function fromCommandCode(code: FlowIOActionCode | number): FlowIOActionString | undefined {
+    switch (code) {
+        case 0x21:
+            return 'stop'
+        case 0x2b:
+            return 'inflate'
+        case 0x2d:
+            return 'vacuum'
+        case 0x5e:
+            return 'release'
+        case 0x70:
+            return 'inflate-half'
+        case 0x6e:
+            return 'vacuum-half'
+        default:
+            return undefined
+    }
+}
+
+export function toPortsCode(ports: FlowIOPortsState): number {
     if (Array.isArray(ports)) {
         return (ports[0] ? 0x01 : 0)
                + (ports[1] ? 0x02 : 0)
@@ -262,12 +281,15 @@ export default class ControlService implements FlowIoService {
         this.lastCommand = command
         const actionCode = toCommandCode(action)
         const portsCode = toPortsCode(ports)
-        const commandArray = new Uint8Array([actionCode, portsCode, pumpPwm]); //Always holds the last command written.
+        const buffer = new ArrayBuffer(3)
+        const dataView = new DataView(buffer)
+        dataView.setUint8(0, actionCode)
+        dataView.setUint8(1, portsCode)
+        dataView.setUint8(2, pumpPwm)
         //All action methods are in terms of the writeCommand() method so this is updated automatically.
         //if the third byte is 255, then we are going to send only the first 2bytes to the FlowIO to save time and bandwidth.
         if (pumpPwm === PUMP_MAX_PWM) { //in this case only send an array of 2-bytes.
-            const array2byte = new Uint8Array([actionCode, portsCode]);
-            await this.#command?.writeValueWithoutResponse(array2byte)
+            await this.#command?.writeValueWithoutResponse(buffer.slice(0, 1))
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
@@ -275,7 +297,7 @@ export default class ControlService implements FlowIoService {
                       })
 
         } else {
-            await this.#command?.writeValueWithoutResponse(commandArray)
+            await this.#command?.writeValueWithoutResponse(dataView.buffer)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
