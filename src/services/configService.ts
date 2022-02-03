@@ -4,11 +4,12 @@ const configServiceUUID = "0b0b0b0b-0b0b-0b0b-0b0b-00000000aa03";
 const chrConfigUUID = "0b0b0b0b-0b0b-0b0b-0b0b-c1000000aa03";
 
 export type FlowIOConfiguration
-    = 'GENERAL'
-    | 'INFLATION_SERIES'
-    | 'INFLATION_PARALLEL'
-    | 'VACUUM_SERIES'
-    | 'VACUUM_PARALLEL'
+    = "GENERAL"
+    | "INFLATION_SERIES"
+    | "INFLATION_PARALLEL"
+    | "VACUUM_SERIES"
+    | "VACUUM_PARALLEL"
+    | "REGULATED_PRESSURE"
 
 
 function configurationToCode(configuration: FlowIOConfiguration): number {
@@ -23,21 +24,25 @@ function configurationToCode(configuration: FlowIOConfiguration): number {
             return 3
         case "VACUUM_PARALLEL":
             return 4
+        case "REGULATED_PRESSURE":
+            return 5
     }
 }
 
 function codeToConfiguration(code: number): FlowIOConfiguration | undefined {
     switch (code) {
         case 0:
-            return 'GENERAL'
+            return "GENERAL"
         case 1:
-            return 'INFLATION_SERIES'
+            return "INFLATION_SERIES"
         case 2:
-            return 'INFLATION_PARALLEL'
+            return "INFLATION_PARALLEL"
         case 3:
-            return 'VACUUM_SERIES'
+            return "VACUUM_SERIES"
         case 4:
-            return 'VACUUM_PARALLEL'
+            return "VACUUM_PARALLEL"
+        case 5:
+            return "REGULATED_PRESSURE"
         default:
             return undefined
     }
@@ -68,7 +73,7 @@ export class ConfigService implements FlowIoService {
         return configuration
     }
 
-    async setConfiguration (configuration: FlowIOConfiguration) {
+    async setConfiguration(configuration: FlowIOConfiguration) {
         const valArray = new Uint8Array([configurationToCode(configuration)]);
         if (this.#configChr == null) throw new Error(`Tried to set configuration for ${this.#bleServer?.device.name}, but service is not available.`)
         await this.#configChr.writeValue(valArray);
