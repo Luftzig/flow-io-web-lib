@@ -10,6 +10,7 @@ export type FlowIOConfiguration
     | "VACUUM_SERIES"
     | "VACUUM_PARALLEL"
     | "REGULATED_PRESSURE"
+    | "REGULATED_VACUUM"
 
 
 function configurationToCode(configuration: FlowIOConfiguration): number {
@@ -26,6 +27,8 @@ function configurationToCode(configuration: FlowIOConfiguration): number {
             return 4
         case "REGULATED_PRESSURE":
             return 5
+        case "REGULATED_VACUUM":
+            return 6
     }
 }
 
@@ -43,6 +46,8 @@ function codeToConfiguration(code: number): FlowIOConfiguration | undefined {
             return "VACUUM_PARALLEL"
         case 5:
             return "REGULATED_PRESSURE"
+        case 6:
+            return "REGULATED_VACUUM"
         default:
             return undefined
     }
