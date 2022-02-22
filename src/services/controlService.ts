@@ -286,19 +286,19 @@ export default class ControlService implements FlowIoService {
         //if the third byte is 255, then we are going to send only the first 2bytes to the FlowIO to save time and bandwidth.
         if (pumpPwm === PUMP_MAX_PWM) { //in this case only send an array of 2-bytes.
             const array2byte = new Uint8Array([actionCode, portsCode]);
-            await this.#command?.writeValueWithoutResponse(array2byte)
+            await this.#command?.writeValueWithResponse(array2byte)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
-                          throw e
+                          console.error("sending", array2byte, "failed:", e)
                       })
 
         } else {
-            await this.#command?.writeValueWithoutResponse(commandArray)
+            await this.#command?.writeValueWithResponse(commandArray)
                       .then(() => this.#subscription.publish("command-sent", command))
                       .catch(e => {
                           this.#subscription.publish("command-failed", e);
-                          throw e
+                          console.error("sending", commandArray, "failed:", e)
                       })
         }
     }
