@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "lib/flow-io.js",
   "license": "Propietary",
-  "author": "Yoav Luft <contact@luftyoav.com>",
+  "author": "[REDACTED]",
   "scripts": {
     "build": "tsc",
     "prepare": "yarn run build",
